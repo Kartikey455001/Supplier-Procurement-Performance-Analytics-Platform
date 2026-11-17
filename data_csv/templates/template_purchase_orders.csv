@@ -1,0 +1,2 @@
+"po_number","supplier_code","order_date","expected_delivery_date","actual_delivery_date","status","total_amount","tax_amount","shipping_cost","payment_status","notes"
+"PO-2026-9999","SUP-001","2026-11-01","2026-11-15","2026-11-14","Delivered","500000.00","15000.00","2500.00","Paid","New seasonal procurement order"

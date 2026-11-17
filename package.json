@@ -1,0 +1,13 @@
+{
+  "name": "jewellery-procurement-analytics-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Supplier & Procurement Performance Analytics Platform for Retail/E-Commerce Jewellery Enterprises",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev:backend": "cd backend && npm start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "db:setup": "cd backend && npm run db:setup",
+    "build:frontend": "cd frontend && npm run build"
+  }
+}

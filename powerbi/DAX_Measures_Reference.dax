@@ -1,0 +1,204 @@
+// ============================================================================
+// JEWELLERY PROCUREMENT & SUPPLIER PERFORMANCE ANALYTICS PLATFORM
+// Complete DAX Calculated Measures Reference for Power BI Desktop
+// Consistent with MySQL Database Views and Web Dashboard Definitions
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+// 1. VOLUME & SPEND MEASURES
+// ----------------------------------------------------------------------------
+
+Total Procurement Spend = 
+SUM(Purchase_Orders[total_amount])
+
+Total Purchase Orders = 
+DISTINCTCOUNT(Purchase_Orders[po_id])
+
+Active Suppliers Count = 
+CALCULATE(
+    DISTINCTCOUNT(Suppliers[supplier_id]),
+    Suppliers[status] = "Active"
+)
+
+Total Units Ordered = 
+SUM(Procurement_Details[ordered_qty])
+
+Total Units Received = 
+SUM(Procurement_Details[received_qty])
+
+Total Units Accepted = 
+SUM(Procurement_Details[accepted_qty])
+
+Total Defective Units = 
+SUM(Procurement_Details[defective_qty])
+
+Total Tax Amount = 
+SUM(Purchase_Orders[tax_amount])
+
+Total Shipping Cost = 
+SUM(Purchase_Orders[shipping_cost])
+
+Total Payments Settled = 
+SUM(Supplier_Payments[amount_paid])
+
+// ----------------------------------------------------------------------------
+// 2. DELIVERY & LEAD TIME MEASURES
+// ----------------------------------------------------------------------------
+
+Delivered Orders Count = 
+CALCULATE(
+    DISTINCTCOUNT(Purchase_Orders[po_id]),
+    Purchase_Orders[status] = "Delivered"
+)
+
+On-Time Orders Count = 
+CALCULATE(
+    DISTINCTCOUNT(Purchase_Orders[po_id]),
+    Purchase_Orders[status] = "Delivered",
+    NOT(ISBLANK(Purchase_Orders[actual_delivery_date])),
+    Purchase_Orders[actual_delivery_date] <= Purchase_Orders[expected_delivery_date]
+)
+
+Delayed Orders Count = 
+CALCULATE(
+    DISTINCTCOUNT(Purchase_Orders[po_id]),
+    Purchase_Orders[status] = "Delivered",
+    NOT(ISBLANK(Purchase_Orders[actual_delivery_date])),
+    Purchase_Orders[actual_delivery_date] > Purchase_Orders[expected_delivery_date]
+)
+
+On-Time Delivery Rate (%) = 
+DIVIDE(
+    [On-Time Orders Count],
+    [Delivered Orders Count],
+    1.00
+) * 100
+
+Average Delivery Lead Days = 
+AVERAGEX(
+    FILTER(
+        Purchase_Orders,
+        Purchase_Orders[status] = "Delivered" && NOT(ISBLANK(Purchase_Orders[actual_delivery_date]))
+    ),
+    DATEDIFF(Purchase_Orders[order_date], Purchase_Orders[actual_delivery_date], DAY)
+)
+
+Average Delay Days (When Late) = 
+AVERAGEX(
+    FILTER(
+        Purchase_Orders,
+        Purchase_Orders[status] = "Delivered" && Purchase_Orders[actual_delivery_date] > Purchase_Orders[expected_delivery_date]
+    ),
+    DATEDIFF(Purchase_Orders[expected_delivery_date], Purchase_Orders[actual_delivery_date], DAY)
+)
+
+// ----------------------------------------------------------------------------
+// 3. QUALITY & DEFECT MEASURES
+// ----------------------------------------------------------------------------
+
+Overall Defect Rate (%) = 
+DIVIDE(
+    [Total Defective Units],
+    [Total Units Received],
+    0.00
+) * 100
+
+Quality Compliance Score (%) = 
+MAX(
+    0.00,
+    100.00 - [Overall Defect Rate (%)]
+)
+
+Defect Financial Scrap Loss = 
+SUMX(
+    Procurement_Details,
+    Procurement_Details[defective_qty] * Procurement_Details[unit_price]
+)
+
+// ----------------------------------------------------------------------------
+// 4. FULFILMENT MEASURES
+// ----------------------------------------------------------------------------
+
+Fulfilment Rate (%) = 
+MIN(
+    100.00,
+    DIVIDE(
+        [Total Units Received],
+        [Total Units Ordered],
+        1.00
+    ) * 100
+)
+
+Incomplete Deliveries Count = 
+CALCULATE(
+    DISTINCTCOUNT(Purchase_Orders[po_id]),
+    Purchase_Orders[status] = "Partially Received"
+)
+
+// ----------------------------------------------------------------------------
+// 5. SUPPLIER RELIABILITY SCORE & TIERING MODEL
+// Mathematical Formula:
+// Reliability Score = (On-Time Delivery * 40%) + (Quality Score * 35%) + (Fulfilment Score * 25%)
+// ----------------------------------------------------------------------------
+
+Supplier Reliability Score = 
+([On-Time Delivery Rate (%)] * 0.40) +
+([Quality Compliance Score (%)] * 0.35) +
+([Fulfilment Rate (%)] * 0.25)
+
+Supplier Performance Tier = 
+VAR Score = [Supplier Reliability Score]
+RETURN
+    SWITCH(
+        TRUE(),
+        Score >= 90.0, "Tier 1 - Elite",
+        Score >= 80.0, "Tier 2 - Reliable",
+        Score >= 70.0, "Tier 3 - Watchlist",
+        "Tier 4 - High Risk"
+    )
+
+Supplier Tier Rank Color = 
+VAR Score = [Supplier Reliability Score]
+RETURN
+    SWITCH(
+        TRUE(),
+        Score >= 90.0, "#10b981", // Emerald
+        Score >= 80.0, "#3b82f6", // Blue
+        Score >= 70.0, "#f59e0b", // Amber
+        "#f43f5e"                 // Rose
+    )
+
+// ----------------------------------------------------------------------------
+// 6. TIME INTELLIGENCE & MOM EXPANSION MEASURES
+// ----------------------------------------------------------------------------
+
+Previous Month Spend = 
+CALCULATE(
+    [Total Procurement Spend],
+    DATEADD(Purchase_Orders[order_date], -1, MONTH)
+)
+
+MoM Spend Growth (%) = 
+VAR Prev = [Previous Month Spend]
+VAR Curr = [Total Procurement Spend]
+RETURN
+    IF(
+        ISBLANK(Prev) || Prev = 0,
+        0,
+        DIVIDE(Curr - Prev, Prev, 0) * 100
+    )
+
+Cumulative Spend YTD = 
+TOTALYTD(
+    [Total Procurement Spend],
+    Purchase_Orders[order_date]
+)
+
+Top 3 Suppliers Spend Share (%) = 
+VAR Top3Spend = 
+    CALCULATE(
+        [Total Procurement Spend],
+        TOPN(3, ALLSELECTED(Suppliers), [Total Procurement Spend], DESC)
+    )
+RETURN
+    DIVIDE(Top3Spend, [Total Procurement Spend], 0) * 100
