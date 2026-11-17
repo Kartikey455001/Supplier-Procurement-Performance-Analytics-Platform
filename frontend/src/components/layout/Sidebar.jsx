@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -14,9 +14,15 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { connectionState } from '../../services/api';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const { user } = useAuth();
+  const [usingFallback, setUsingFallback] = useState(connectionState.isUsingFallback);
+
+  useEffect(() => {
+    return connectionState.subscribe((val) => setUsingFallback(val));
+  }, []);
 
   const navItems = [
     { name: 'Overview', path: '/', icon: LayoutDashboard },
@@ -92,11 +98,18 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         <div className="p-4 border-t border-slate-800/80 bg-slate-950/60">
           <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-medium">Database:</span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                MySQL 8.0 Live
-              </span>
+              <span className="text-slate-400 font-medium">Status:</span>
+              {usingFallback ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400" title="Running in preloaded high-fidelity dataset mode">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  Preloaded Data
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  MySQL 8.0 Live
+                </span>
+              )}
             </div>
             <div className="text-[11px] text-slate-400 flex items-center justify-between">
               <span>Access Level:</span>

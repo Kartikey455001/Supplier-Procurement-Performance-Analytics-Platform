@@ -83,7 +83,7 @@ export async function getAllOrders(req, res, next) {
       params.push(endDate);
     }
 
-    query += ` GROUP BY po.po_id`;
+    query += ` GROUP BY po.po_id, po.po_number, po.supplier_id, s.supplier_name, s.supplier_code, s.category, po.order_date, po.expected_delivery_date, po.actual_delivery_date, po.status, po.total_amount, po.tax_amount, po.shipping_cost, po.payment_status, po.created_by`;
 
     // Having filters for calculated values
     const havingClauses = [];

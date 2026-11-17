@@ -83,11 +83,24 @@ export default function Dashboard() {
   }, [dateRange.startDate, dateRange.endDate]);
 
   if (loading) return <LoadingSpinner text="Aggregating procurement metrics from MySQL..." />;
-  if (error) {
+  if (error && !data) {
     return (
-      <div className="p-6 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300">
-        <p className="font-bold">Error loading overview:</p>
-        <p className="text-sm">{error}</p>
+      <div className="p-6 bg-slate-900 border border-rose-500/30 rounded-2xl text-slate-200 space-y-4 max-w-2xl mx-auto my-12">
+        <div className="flex items-center gap-3 text-rose-400">
+          <AlertTriangle className="w-6 h-6 shrink-0" />
+          <h3 className="font-bold text-lg">Unable to connect to live analytics API</h3>
+        </div>
+        <p className="text-sm text-slate-400">
+          {error}
+        </p>
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-bold rounded-xl text-xs hover:from-amber-400 hover:to-yellow-500 transition-all"
+          >
+            Retry Connection
+          </button>
+        </div>
       </div>
     );
   }

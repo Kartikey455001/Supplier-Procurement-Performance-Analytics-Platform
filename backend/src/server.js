@@ -19,7 +19,21 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow localhost, vercel deployments, render, or configured FRONTEND_URL
+    if (
+      origin.includes('localhost') ||
+      origin.includes('vercel.app') ||
+      origin.includes('onrender.com') ||
+      origin === process.env.FRONTEND_URL ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -48,11 +62,13 @@ app.use('/api/import', importRoutes);
 // Error Handling Middleware
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`[Server] Jewellery Procurement Analytics Backend running on port ${PORT}`);
-  console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
-  await testConnection();
-});
+// Start server (only when not running inside a serverless lambda like Vercel)
+if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, async () => {
+    console.log(`[Server] Jewellery Procurement Analytics Backend running on port ${PORT}`);
+    console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
+    await testConnection();
+  });
+}
 
 export default app;

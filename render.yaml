@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: jewellery-procurement-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node backend/src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        value: gateway01.ap-southeast-1.prod.aws.tidbcloud.com
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_USER
+        value: 43VuQDB9CLULgYi.root
+      - key: DB_PASSWORD
+        value: jnWmXAv9WtH8SuyT
+      - key: DB_NAME
+        value: jewellery_procurement_db
+      - key: DB_SSL
+        value: "true"
+      - key: JWT_SECRET
+        value: jewel_procure_super_secret_jwt_key_2026_enterprise_analytics_token
