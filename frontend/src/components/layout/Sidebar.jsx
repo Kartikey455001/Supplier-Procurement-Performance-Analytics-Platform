@@ -99,8 +99,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               </span>
             </div>
             <div className="text-[11px] text-slate-400 flex items-center justify-between">
-              <span>Signed In As:</span>
-              <span className="font-semibold text-slate-200 capitalize">{user?.role}</span>
+              <span>Access Level:</span>
+              <span className="font-semibold text-gold-400 capitalize">Enterprise Admin</span>
             </div>
           </div>
         </div>

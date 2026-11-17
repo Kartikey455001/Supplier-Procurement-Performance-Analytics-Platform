@@ -4,7 +4,6 @@ import {
   Bell,
   Search,
   Calendar,
-  LogOut,
   User as UserIcon,
   Shield,
   CheckCircle2,
@@ -16,7 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useFilter } from '../../context/FilterContext';
 
 export default function Header({ toggleSidebar }) {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const {
     datePreset,
     setDatePreset,
@@ -182,14 +181,10 @@ export default function Header({ toggleSidebar }) {
                 <div className="px-3 py-2 text-[11px] text-slate-400">
                   Department: <span className="text-slate-200 font-semibold">{user?.department || 'Procurement'}</span>
                 </div>
-
-                <button
-                  onClick={logout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </button>
+                <div className="px-3 py-1.5 text-[11px] text-emerald-400 flex items-center gap-1.5 font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Direct Access Enabled
+                </div>
               </div>
             </div>
           )}
